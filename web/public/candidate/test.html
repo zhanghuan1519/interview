@@ -420,10 +420,13 @@
                 ws: null,
                 videoElement: null,
 
-                videoRecoder: null,
+                videoRecorder: null,
                 videoChunks: [],
                 videoUrl: null,
                 isVideoRecording: false,
+                record_start_time: 0, //毫秒数
+                record_end_time: 0,
+
 
                 get progress() {
                     return ((this.questionIndex) / this.questionCount) * 100;
@@ -491,7 +494,7 @@
                     formData.append('file', blob, filename);
 
                     try {
-                        const response = await fetch(`http://127.0.0.1:8000/candidate/upload_audio/${candidate_id}`, {
+                        const response = await fetch(`http://127.0.0.1:8000/candidate/upload_audio/${candidate_id}/${this.questions[this.questionIndex].id}/${this.record_start_time}/${this.record_end_time}`, {
                             method: 'POST',
                             body: formData
                         });
@@ -758,32 +761,32 @@
                     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                     this.videoElement.srcObject = stream;
 
-                    this.videoRecoder = new MediaRecorder(stream, { mimeType: 'video/webm' })
-                    this.videoRecoder.ondataavailable = (event) => {
+                    this.videoRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' })
+                    this.videoRecorder.ondataavailable = (event) => {
                         if (event.data.size > 0) {
                             this.videoChunks.push(event.data);
                         }
                     };
-                    this.videoRecoder.onstop = async () => {
+                    this.videoRecorder.onstop = async () => {
                         const blob = new Blob(this.videoChunks, { type: 'video/webm' });
                         this.videoUrl = URL.createObjectURL(blob);
 
-                        await this.updateVideo(blob);
+                        await this.uploadVideo(blob);
                         this.videoChunks = [];
                         URL.revokeObjectURL(this.videoUrl);
                     };
                 },
 
                 startVideoRecording() {
-                    if (this.videoRecoder && this.videoRecoder.state === 'inactive') {
+                    if (this.videoRecorder && this.videoRecorder.state === 'inactive') {
                         this.videoChunks = [];
-                        this.videoRecoder.start();
+                        this.videoRecorder.start();
                         this.isVideoRecording = true;
                         console.log("开始录制视频");
                     }
                 },
                 stopVideoRecording() {
-                    if (this.videoRecoder && this.videoRecoder.state === 'recording') {
+                    if (this.videoRecorder && this.videoRecorder.state === 'recording') {
                         this.videoRecorder.stop();
                         this.isVideoRecording = false;
                         console.log('停止录制视频');
@@ -796,7 +799,7 @@
                     formData.append('file', blob, filename);
 
                     try {
-                        const response = await fetch(`http://127.0.0.1:8000/candidate/upload_video/${candidate_id}`, {
+                        const response = await fetch(`http://127.0.0.1:8000/candidate/upload_video/${candidate_id}/${this.questions[this.questionIndex].id}`, {
                             method: 'POST',
                             body: formData,
                         });
@@ -843,6 +846,9 @@
                     this.isFinished = false;
                     this.isRecording = true;
 
+                    //记录开始时间
+                    const now = new Date();
+                    this.record_start_time = now.getTime();
                     //启动录音
                     this.startRecordingAudio();
                     //启动录制视频
@@ -866,6 +872,9 @@
                     this.isFinished = false;
                     this.isRecording = true;
 
+                    //记录开始时间
+                    const now = new Date();
+                    this.record_start_time = now.getTime();
                     //启动录音
                     this.startRecordingAudio();
                     //启动录制视频
@@ -896,10 +905,13 @@
                     // 显示“下一题”按钮
                     this.showNextButton = true;
 
+                    //记录停止时间
+                    const now = new Date();
+                    this.record_end_time = now.getTime();
                     //停止录音
                     this.stopRecordingAudio();
                     //停止录制视频
-                    this.stopVideoRecording();
+                    this.stopVideoRecording();                    
                 },
 
                 finishAnswer() {

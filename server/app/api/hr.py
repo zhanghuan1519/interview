@@ -91,8 +91,28 @@ def create_question(interview : InterviewQuestionCreate, db: Session = Depends(g
             job_title=job.job_title,
             job_description=job.job_description,
             job_requirements=job.requirements
-        )
+        )       
+        # 第五步: 保存面试问题 
+        try:
+            order = 1
+            for question in result["questions"]:
+                new_question = models.InterviewSessionQuestion(
+                    interview_session_id=sessions.id,
+                    question_text=question["content"],
+                    question_type=question["type"],
+                    order_number=order,
+                    answer_time_limit=40,
+                    is_auto_generated=1
+                )
+                order = order + 1
+                db.add(new_question)
+            db.commit()
+            
+            result = db.query(models.)
+        except Exception as ex:
+            db.rollback()
+            raise HTTPException(status_code=500, detail="保存面试问题到数据库时发生错误")
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Deepseek服务异常")
-    # 第五步: 保存面试问题
+        raise HTTPException(status_code=500, detail=f"Deepseek服务异常：{e}")    
+    
     return {"code": 0, "message": "面试问题创建成功", "questions": result["questions"]}

@@ -184,13 +184,25 @@ async def update_interview_status(interviewStatus: InterviewStatus, request: Req
     return {"message": "面试状态保存成功", "code": 0}
 
 
+def format_utc_millsecond(timestamp: int):
+    # 将毫秒数转换为秒数
+    seconds = timestamp / 1000.0
+    # 将时间戳转换为 UTC 时间
+    utc_time = datetime.fromtimestamp(seconds, tz=timezone.utc)
+    # 按指定格式输出 (例如：'YYYY-MM-DD HH:MM:SS UTC')
+    formatted_utc_time = utc_time.strftime('%Y-%m-%d %H:%M:%S')
+    return formatted_utc_time
+
+
 AUDIO_UPLOAD_DIR = "audio"
 
-@router.post("/upload_audio/{candidate_id}")
-async def upload_audio(candidate_id: int = Path(..., title="候选人ID", gt=0), file: UploadFile = File(...)):
-    try:
+@router.post("/upload_audio/{candidate_id}/{question_id}/{record_start_time}/{record_end_time}")
+async def upload_audio(candidate_id: int = Path(..., title="候选人ID", gt=0),question_id: int=Path(...), record_start_time: int = Path(...), record_end_time: int = Path(...), file: UploadFile = File(...), db: Session = Depends(get_db)):
+    try: 
+        start = format_utc_millsecond(record_start_time)
+        end = format_utc_millsecond(record_end_time)
         
-        os.makedirs(AUDIO_UPLOAD_DIR = "audio", exist_ok=True)
+        os.makedirs(AUDIO_UPLOAD_DIR, exist_ok=True)
         # 生成安全文件名
         timestamp = datetime.now().strftime(f"{candidate_id}_%Y%m%d_%H%M%S")
         file_ext = os.path.splitext(file.filename)[1]
@@ -206,6 +218,14 @@ async def upload_audio(candidate_id: int = Path(..., title="候选人ID", gt=0),
                 if not chunk:
                     break
                 await f.write(chunk)        
+        
+        answer = db.query(models.InterviewAnswer).filter(models.InterviewAnswer.session_question_id==question_id).first()
+        if not answer:
+            raise HTTPException(status_code=404, detail="面试答案不存在")         
+        answer.answer_audio_path = file_path
+        answer.answer_start_time = start
+        answer.answer_end_time = end
+        db.commit()        
         return {"message": "success", "file_path": file_path, "code": 0}
     except Exception as e:
         return {"message": str(e), "code": -1}
@@ -213,10 +233,10 @@ async def upload_audio(candidate_id: int = Path(..., title="候选人ID", gt=0),
 
 VIDEO_UPLOAD_DIR = "video"
 
-@router.post("/candidate/upload_video/{candidate_id}")
-async def upload_video(candidate_id: str, file: UploadFile = File(...)):    
+@router.post("/upload_video/{candidate_id}/{question_id}")
+async def upload_video(candidate_id: str, question_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):    
     try:
-        os.makedirs(VIDEO_UPLOAD_DIR = "audio", exist_ok=True)
+        os.makedirs(VIDEO_UPLOAD_DIR, exist_ok=True)
         # 生成安全文件名
         timestamp = datetime.now().strftime(f"{candidate_id}_%Y%m%d_%H%M%S")
         file_ext = os.path.splitext(file.filename)[1]
@@ -230,6 +250,12 @@ async def upload_video(candidate_id: str, file: UploadFile = File(...)):
                 if not chunk:
                     break
                 await f.write(chunk)
+        
+        answer = db.query(models.InterviewAnswer).filter(models.InterviewAnswer.session_question_id==question_id).first()
+        if not answer:
+            raise HTTPException(status_code=404, detail="面试答案不存在")         
+        answer.answer_video_path = file_path
+        db.commit() 
         return {"message": "success", "file_path": file_path, "code": 0}
     except Exception as e:
         return {"message": str(e), "code": -1}
