@@ -184,20 +184,20 @@ async def update_interview_status(interviewStatus: InterviewStatus, request: Req
     return {"message": "面试状态保存成功", "code": 0}
 
 
-UPLOAD_DIR = "audio"
+AUDIO_UPLOAD_DIR = "audio"
 
 @router.post("/upload_audio/{candidate_id}")
 async def upload_audio(candidate_id: int = Path(..., title="候选人ID", gt=0), file: UploadFile = File(...)):
     try:
         
-        os.makedirs(UPLOAD_DIR, exist_ok=True)
+        os.makedirs(AUDIO_UPLOAD_DIR = "audio", exist_ok=True)
         # 生成安全文件名
         timestamp = datetime.now().strftime(f"{candidate_id}_%Y%m%d_%H%M%S")
         file_ext = os.path.splitext(file.filename)[1]
         safe_filename = f"audio_{timestamp}{file_ext}"
         
         # 保存文件
-        file_path = os.path.join(UPLOAD_DIR, safe_filename)
+        file_path = os.path.join(AUDIO_UPLOAD_DIR, safe_filename)
         
         async with aiofiles.open(file_path, "wb") as f:
             while True:
@@ -206,6 +206,32 @@ async def upload_audio(candidate_id: int = Path(..., title="候选人ID", gt=0),
                 if not chunk:
                     break
                 await f.write(chunk)        
-        return {"message": "success", "file_path": "", "code": 0}
+        return {"message": "success", "file_path": file_path, "code": 0}
     except Exception as e:
         return {"message": str(e), "code": -1}
+    
+
+VIDEO_UPLOAD_DIR = "video"
+
+@router.post("/candidate/upload_video/{candidate_id}")
+async def upload_video(candidate_id: str, file: UploadFile = File(...)):    
+    try:
+        os.makedirs(VIDEO_UPLOAD_DIR = "audio", exist_ok=True)
+        # 生成安全文件名
+        timestamp = datetime.now().strftime(f"{candidate_id}_%Y%m%d_%H%M%S")
+        file_ext = os.path.splitext(file.filename)[1]
+        safe_filename = f"video_{timestamp}{file_ext}"
+        # 保存文件
+        file_path = os.path.join(VIDEO_UPLOAD_DIR, safe_filename)
+        async with aiofiles.open(file_path, "wb") as f:
+            while True:
+                # 分块读取（避免内存溢出）
+                chunk = await file.read(1024 * 1024)  # 1MB chunks
+                if not chunk:
+                    break
+                await f.write(chunk)
+        return {"message": "success", "file_path": file_path, "code": 0}
+    except Exception as e:
+        return {"message": str(e), "code": -1}
+
+

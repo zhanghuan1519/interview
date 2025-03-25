@@ -420,6 +420,11 @@
                 ws: null,
                 videoElement: null,
 
+                videoRecoder: null,
+                videoChunks: [],
+                videoUrl: null,
+                isVideoRecording: false,
+
                 get progress() {
                     return ((this.questionIndex) / this.questionCount) * 100;
                 },
@@ -752,7 +757,61 @@
                     this.videoElement = this.$refs.video;
                     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                     this.videoElement.srcObject = stream;
+
+                    this.videoRecoder = new MediaRecorder(stream, { mimeType: 'video/webm' })
+                    this.videoRecoder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            this.videoChunks.push(event.data);
+                        }
+                    };
+                    this.videoRecoder.onstop = async () => {
+                        const blob = new Blob(this.videoChunks, { type: 'video/webm' });
+                        this.videoUrl = URL.createObjectURL(blob);
+
+                        await this.updateVideo(blob);
+                        this.videoChunks = [];
+                        URL.revokeObjectURL(this.videoUrl);
+                    };
                 },
+
+                startVideoRecording() {
+                    if (this.videoRecoder && this.videoRecoder.state === 'inactive') {
+                        this.videoChunks = [];
+                        this.videoRecoder.start();
+                        this.isVideoRecording = true;
+                        console.log("开始录制视频");
+                    }
+                },
+                stopVideoRecording() {
+                    if (this.videoRecoder && this.videoRecoder.state === 'recording') {
+                        this.videoRecorder.stop();
+                        this.isVideoRecording = false;
+                        console.log('停止录制视频');
+                    }
+                },
+                async uploadVideo(blob) {
+                    const candidate_id = localStorage.getItem("candidate_id");
+                    const formData = new FormData();
+                    const filename = `video_${candidate_id}_${Date.now()}.webm`;
+                    formData.append('file', blob, filename);
+
+                    try {
+                        const response = await fetch(`http://127.0.0.1:8000/candidate/upload_video/${candidate_id}`, {
+                            method: 'POST',
+                            body: formData,
+                        });
+
+                        const data = await response.json();
+                        if (response.ok) {
+                            console.log('视频上传成功:', data.message);
+                        } else {
+                            console.error('视频上传失败:', data.message);
+                        }
+                    } catch (error) {
+                        console.error('上传视频时发生错误:', error);
+                    }
+                },
+
                 closeWebSocket() {
                     if (this.ws) {
                         this.ws.close();
@@ -786,6 +845,8 @@
 
                     //启动录音
                     this.startRecordingAudio();
+                    //启动录制视频
+                    this.startVideoRecording();
 
                     // 启动40秒作答倒计时
                     this.answeringTimer = setInterval(() => {
@@ -807,6 +868,8 @@
 
                     //启动录音
                     this.startRecordingAudio();
+                    //启动录制视频
+                    this.startVideoRecording();
 
                     // 启动40秒倒计时
                     this.answeringTimer = setInterval(() => {
@@ -835,6 +898,8 @@
 
                     //停止录音
                     this.stopRecordingAudio();
+                    //停止录制视频
+                    this.stopVideoRecording();
                 },
 
                 finishAnswer() {
