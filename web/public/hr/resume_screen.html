@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>简历筛选 - AI面试平台</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <link rel="stylesheet" href="../../assets/css/hr.css">
+  <script src="../../assets/js/api.js" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // 模拟简历列表数据，可替换为实际从后端获取的数据
+      const resumes = [
+        { id: 1, candidate: "张三", summary: "3年开发经验，精通Python" },
+        { id: 2, candidate: "李四", summary: "应届毕业生，有实习经验" }
+      ];
+      const tableBody = document.getElementById("resumeTableBody");
+      resumes.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${item.id}</td><td>${item.candidate}</td><td>${item.summary}</td><td><button>邀请面试</button></td>`;
+        tableBody.appendChild(row);
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="hr-form-container">
+    <h2>简历筛选</h2>
+    <table class="resume-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>候选人</th>
+          <th>简历摘要</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="resumeTableBody">
+        <!-- 动态填充 -->
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

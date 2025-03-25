@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>候选人邀请 - AI面试平台</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <link rel="stylesheet" href="../../assets/css/hr.css">
+  <script src="../../assets/js/api.js" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const inviteForm = document.getElementById("inviteForm");
+      inviteForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const candidateEmail = document.getElementById("candidateEmail").value;
+        const interviewLink = document.getElementById("interviewLink").value;
+        const data = { email: candidateEmail, interview_link: interviewLink };
+        try {
+          // 模拟调用后端接口发送邀请
+          const res = await fetch("http://localhost:8000/hr/invite", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
+          });
+          const result = await res.json();
+          if(result.message === "邀请发送成功") {
+            alert("邀请发送成功！");
+          } else {
+            alert("邀请发送失败");
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="hr-form-container">
+    <h2>候选人邀请</h2>
+    <form id="inviteForm">
+      <label for="candidateEmail">候选人邮箱</label>
+      <input type="email" id="candidateEmail" name="candidateEmail" placeholder="请输入候选人邮箱" required>
+      <label for="interviewLink">面试链接</label>
+      <input type="text" id="interviewLink" name="interviewLink" placeholder="请输入面试链接" required>
+      <button type="submit">发送邀请</button>
+    </form>
+  </div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "liveServer.settings.ignoreFiles": [
+    "&zwnj;**/audio/**&zwnj;",  
+    "&zwnj;**/temp/**&zwnj;" 
+  ]
+}

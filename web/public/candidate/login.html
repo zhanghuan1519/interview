@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <title>面试者登录 - AI面试平台</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <link rel="stylesheet" href="../../assets/css/candidate.css">
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="../../assets/js/api.js" defer></script>
+  <script src="../../assets/js/candidate.js" defer></script>
+  <style>
+    .error-message {
+      color: red;
+      font-size: 0.8rem;
+      margin-top: 5px;
+    }
+
+    .success-message {
+      color: black;
+      font-size: 0.8rem;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-container" x-data="loginData()">
+    <!-- 左侧宣传区域 -->
+    <div class="login-left">
+      <div class="promo">
+        <h2>智能面试，精准筛选</h2>
+        <p>TalentSync——做您身边的智能招聘专家</p>
+        <!-- 可添加动态动画或视频背景 -->
+      </div>
+    </div>
+    <!-- 右侧登录区域 -->
+    <div class="login-right">
+      <div class="login-form">
+        <img src="../../assets/images/logo.png" alt="Logo" class="logo">
+        <h2>欢迎登录</h2>
+        <form id="loginForm" @submit.prevent="login">
+          <label for="contact">邮箱或手机号</label>
+          <input type="text" id="contact" name="contact" placeholder="请输入邮箱或手机号" x-model="contact" required>
+          <p class="error-message" x-show="contactErrorMessage" x-text="contactErrorMessage"></p>
+          <label for="code">验证码</label>
+          <div class="code-input">
+            <input type="text" id="code" name="code" placeholder="请输入验证码" x-model="code" required>
+            <button type="button" @click="sendCode" x-text="countdown === 0 ? '获取验证码' : `${countdown}秒后重试`"
+              :disabled="countdown > 0"></button>
+          </div>
+          <p class="error-message" x-show="codeErrorMessage" x-text="codeErrorMessage"></p>
+          <p class="success-message" x-show="generalSuccessMessage" x-text="generalSuccessMessage"></p>
+          <p class="error-message" x-show="generalErrorMessage" x-text="generalErrorMessage"></p>
+          <button type="submit">登录</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    window.onload = function () {
+      history.pushState(null, '', location.href);
+      // 防止用户通过浏览器的后退按钮返回到登录页面
+      // 通过清除localStorage中的candidate_id来实现推出登录，同时清楚服务器端的登录状态
+      const candidate_id = localStorage.getItem("candidate_id");
+      console.log(candidate_id);
+      if (candidate_id) {
+        fetch(`http://127.0.0.1:8000/candidate/logout?candidate_id=${candidate_id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        }).then(response => response.json()).then(data => {
+          localStorage.removeItem('candidate_id');
+          if (data.code === 0) {
+            console.log("Logout success");
+          } else {
+            console.log("Logout failed");
+          }
+        }).catch(error => {
+          console.error('Logout error:', error);
+        });
+      }
+    }
+    function loginData() {
+      return {
+        contact: '',
+        code: '',
+        countdown: 0,
+        contactErrorMessage: '',
+        codeErrorMessage: '',
+        generalErrorMessage: '',
+        generalSuccessMessage: '',
+        validateContact() {
+          this.contactErrorMessage = '';
+          this.contact = this.contact.trim();
+          const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          const phonePattern = /^\d{10,15}$/;
+          if (!this.contact) {
+            this.contactErrorMessage = '邮箱或手机号不能为空';
+            return false;
+          }
+          if (!emailPattern.test(this.contact) && !phonePattern.test(this.contact)) {
+            this.contactErrorMessage = '邮箱或手机号格式不正确';
+            return false;
+          }
+          return true;
+        },
+        validateCode() {
+          this.codeErrorMessage = '';
+          this.code = this.code.trim();
+          if (!this.code) {
+            this.codeErrorMessage = '验证码不能为空';
+            return false;
+          }
+          if (!/^\d{6}$/.test(this.code)) {
+            this.codeErrorMessage = '验证码必须是6位数字';
+            return false;
+          }
+          return true;
+        },
+        sendCode() {
+          if (!this.validateContact()) {
+            return;
+          }
+          if (this.countdown === 0) {
+            this.countdown = 60;
+            const interval = setInterval(() => {
+              this.countdown--;
+              if (this.countdown === 0) clearInterval(interval);
+            }, 1000);
+
+            fetch('http://127.0.0.1:8000/auth/generate-code', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contact: this.contact,
+                type: this.contact.includes('@') ? 'email' : 'phone'
+              })
+            }).then(response => response.json()).then(data => {
+              if (data.message === '验证码已发送') {
+                this.generalSuccessMessage = '验证码已发送到您的邮箱或手机';
+                this.generalErrorMessage = '';
+              } else {
+                this.generalErrorMessage = '验证码发送失败';
+                this.generalSuccessMessage = '';
+              }
+            }).catch(error => {
+              console.error('Error:', error);
+              this.generalErrorMessage = '验证码发送失败';
+              this.generalSuccessMessage = '';
+            });
+          }
+        },
+
+        async login() {
+          if (!this.validateContact() || !this.validateCode()) {
+            return;
+          }
+          this.generalSuccessMessage = '';
+          console.log(this.code);
+          fetch('http://127.0.0.1:8000/candidate/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contact: this.contact,
+              type: this.contact.includes('@') ? 'email' : 'phone',
+              code: this.code
+            })
+          }).then(response => response.json()).then(data => {
+            if (data.code === 0) {
+              this.contact = '';
+              this.code = '';
+              localStorage.setItem('candidate_id', data.candidate_id);
+              this.generalSuccessMessage = '登录成功';
+              this.generalErrorMessage = '';
+              window.location.href = 'profile_confirm.html';
+            } else {
+              this.generalErrorMessage = data.message;
+              this.generalSuccessMessage = '';
+            }
+          }).catch(error => {
+            console.error('Error:', error);
+            this.generalErrorMessage = data.message;
+            this.generalSuccessMessage = '';
+          });
+        }
+      }
+    }
+  </script>
+</body>
+
+</html>

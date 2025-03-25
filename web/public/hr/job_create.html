@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>创建岗位 - AI面试平台</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <link rel="stylesheet" href="../../assets/css/hr.css">
+  <script src="../../assets/js/api.js" defer></script>
+  <script src="../../assets/js/hr.js" defer></script>
+</head>
+<body>
+  <div class="hr-form-container">
+    <h2>创建岗位</h2>
+    <form id="jobForm">
+      <label for="job_title">岗位名称</label>
+      <input type="text" id="job_title" name="job_title" placeholder="请输入岗位名称" required>
+      <label for="job_description">岗位描述</label>
+      <textarea id="job_description" name="job_description" placeholder="请输入岗位描述" rows="3" required></textarea>
+      <label for="requirements">岗位要求</label>
+      <textarea id="requirements" name="requirements" placeholder="请输入岗位要求" rows="3" required></textarea>
+      <button type="submit">创建岗位</button>
+    </form>
+  </div>
+</body>
+</html>

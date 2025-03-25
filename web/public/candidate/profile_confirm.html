@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <title>TalentSync-AI面试专家</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 引入 Remix Icon -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.2.0/fonts/remixicon.css" rel="stylesheet">
+  <!-- 引入CSS -->
+  <link rel="stylesheet" href="../../assets/css/candidate_profile_confirm.css">
+  <style>
+    /* 除了之前的样式外，增加音量条样式 */
+    .volume-meter-container {
+      display: inline-block;
+      width: 100px;
+      height: 10px;
+      background: #ddd;
+      margin-left: 10px;
+      vertical-align: middle;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .volume-meter {
+      height: 100%;
+      background: #4caf50;
+      width: 0;
+    }
+
+    /* 视频区域：若无视频则背景黑 */
+    .video-box {
+      background: #000;
+      width: 300px;
+      height: auto;
+      display: inline-block;
+    }
+
+    .btn-next.disabled {
+      background-color: grey;
+      pointer-events: none;
+    }
+
+    /* 调整日期输入框的样式 */
+    input[type="date"] {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+
+    /* 自定义下拉选择框样式 */
+    .custom-select {
+      position: relative;
+      width: 100%;
+    }
+
+    .custom-select input {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 14px;
+      background-color: #fff;
+    }
+
+    .custom-select .options {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+    }
+
+    .custom-select .options.show {
+      display: block;
+    }
+
+    .custom-select .option {
+      padding: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .custom-select .option:hover {
+      background-color: #f0f0f0;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+
+<body x-data="myComponent()">
+  <!-- 顶部步骤条 -->
+  <div class="steps-container">
+    <!-- 第1步：填写个人信息 -->
+    <div class="step-block">
+      <div class="step-circle" :class="{ 'active': currentStep >= 1 }">
+        <i class="ri-user-line" :class="{ 'icon-active': currentStep >= 1 }"></i>
+      </div>
+      <div class="step-label">第一步：填写个人信息</div>
+    </div>
+
+    <!-- 横线 + 箭头 -->
+    <div class="step-line">
+      <div class="arrow-center"></div>
+    </div>
+
+    <!-- 第2步：设备调试 -->
+    <div class="step-block">
+      <div class="step-circle" :class="{ 'active': currentStep >= 2 }">
+        <i class="ri-tools-line" :class="{ 'icon-active': currentStep >= 2 }"></i>
+      </div>
+      <div class="step-label">第二步：设备调试</div>
+    </div>
+
+    <div class="step-line">
+      <div class="arrow-center"></div>
+    </div>
+
+    <!-- 第3步：开始答题 -->
+    <div class="step-block">
+      <div class="step-circle" :class="{ 'active': currentStep >= 3 }">
+        <i class="ri-questionnaire-line" :class="{ 'icon-active': currentStep >= 3 }"></i>
+      </div>
+      <div class="step-label">第三步：开始答题</div>
+    </div>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="main-content">
+    <!-- Step 1: 填写个人信息 -->
+    <template x-if="currentStep === 1">
+      <div class="step-content">
+        <h2 class="step-title">请完善并确认个人信息</h2>
+        <div class="info-note">
+          请仔细核对个人信息，下次进入将验证个人信息
+        </div>
+        <form class="form-container">
+          <div class="form-row">
+            <!-- 左侧 -->
+            <div class="form-col">
+              <div class="form-group">
+                <label for="name">姓名</label>
+                <input type="text" id="name" x-model="profileData.name" style="background-color: #fff;">
+              </div>
+              <div class="form-group">
+                <label for="birthdate">出生日期</label>
+                <input type="date" id="birthdate" x-model="profileData.birthdate">
+              </div>
+              <div class="form-group">
+                <label for="phone">手机号</label>
+                <input type="text" id="phone" x-model="profileData.phone" x-bind:disabled="!phone_nil"
+                  x-bind:style="{ backgroundColor: !phone_nil ? '#f0f0f0' : '#fff' }">
+                <div class="error-message" x-show="phoneError">手机号格式不正确</div>
+              </div>
+            </div>
+            <!-- 右侧 -->
+            <div class="form-col">
+              <div class="form-group">
+                <label>性别</label>
+                <div class="gender-options">
+                  <label><input type="radio" name="gender" value="male" x-model="profileData.gender"> 男</label>
+                  <label><input type="radio" name="gender" value="female" x-model="profileData.gender"> 女</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="degree">学历</label>
+                <div class="custom-select">
+                  <input type="text" id="degree" x-model="profileData.degree" @click="toggleOptions" readonly
+                    style="background-color: #fff;">
+                  <div class="options" x-show="showOptions" @mouseleave="showOptions = false">
+                    <div class="option" @click="selectOption('博士')">博士</div>
+                    <div class="option" @click="selectOption('硕士')">硕士</div>
+                    <div class="option" @click="selectOption('本科')">本科</div>
+                    <div class="option" @click="selectOption('专科')">专科</div>
+                    <div class="option" @click="selectOption('高中')">高中</div>
+                    <div class="option" @click="selectOption('初中')">初中</div>
+                    <div class="option" @click="selectOption('小学')">小学</div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="email">邮箱</label>
+                <input type="email" id="email" x-model="profileData.email" x-bind:disabled="!email_nil"
+                  x-bind:style="{ backgroundColor: !email_nil ? '#f0f0f0' : '#fff' }">
+                <div class="error-message" x-show="emailError">邮箱格式不正确</div>
+              </div>
+            </div>
+          </div>
+          <div class="button-row">
+            <button type="button" class="btn-next" @click="saveAndNextStep">下一步</button>
+          </div>
+        </form>
+      </div>
+    </template>
+
+    <!-- Step 2: 设备调试 -->
+    <template x-if="currentStep === 2">
+      <div class="step-content">
+        <h2 class="step-title">第二步：设备调试</h2>
+        <p>请点击“开始测试”按钮，分别测试摄像头和语音设备是否正常工作。</p>
+        <div class="device-test">
+          <button type="button" class="btn-test" @click="testDevices()">开始测试</button>
+          <!-- 独立的控制区域 -->
+          <div class="device-settings" style="margin-top: 15px;" x-show="cameraTested && micTested">
+            <label>
+              <input type="checkbox" x-model="cameraEnabled" @change="updateVideoStream()">
+              显示摄像头
+            </label>
+            &nbsp;&nbsp;&nbsp;
+            <label>
+              <input type="checkbox" x-model="micEnabled" @change="updateAudioState()">
+              播放语音
+            </label>
+            <div class="volume-meter-container">
+              <div class="volume-meter" :style="{ width: volumeLevel + '%' }"></div>
+            </div>
+          </div>
+          <!-- 视频预览区域 -->
+          <div class="camera-preview" style="margin-top: 15px;" x-show="cameraTested && micTested">
+            <div class="video-box">
+              <video x-ref="video" autoplay playsinline width="300"></video>
+            </div>
+          </div>
+          <!-- 隐藏的音频元素 -->
+          <audio x-ref="audio" autoplay playsinline style="display:none"></audio>
+        </div>
+        <div class="button-row">
+          <button type="button" class="btn-prev" @click="goToStep(1)">上一步</button>
+          <button type="button" class="btn-next" :class="{ 'disabled': !tested_camera || !tested_mic }"
+            @click="goToStep(3)" :disabled="!tested_camera || !tested_mic">下一步</button>
+        </div>
+      </div>
+    </template>
+
+    <!-- Step 3: 开始答题 -->
+    <template x-if="currentStep === 3">
+      <div class="step-content">
+        <h2 class="step-title">第三步：开始答题</h2>
+        <p x-text="`您今天面试的岗位是: ${job_title}`"></p>
+        <div class="button-row">
+          <button type="button" class="btn-prev" @click="goToStep(2)">上一步</button>
+          <button type="button" class="btn-next" @click="startExam()">开始答题</button>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- 所有函数和数据均写在此处 -->
+  <script>
+    function myComponent() {
+      return {
+        currentStep: 1,
+        videoStream: null,
+        audioStream: null,
+        cameraTested: false,
+        micTested: false,
+        cameraEnabled: true,
+        micEnabled: true,
+        volumeLevel: 0,
+        audioContext: null,
+        analyser: null,
+        animationFrameId: null,
+        tested_camera: false,
+        tested_mic: false,
+        email_nil: true,
+        phone_nil: true,
+        phoneError: false,
+        emailError: false,
+        profileData: {
+          name: '',
+          birthdate: '',
+          phone: '',
+          gender: '',
+          degree: '',
+          email: ''
+        },
+        showOptions: false,
+        job_title: "",
+        init() {
+          // 当步骤变化时，若离开第二步则停止设备并复原状态
+          this.$watch('currentStep', (value) => {
+            if (value !== 2) {
+              this.stopDevices();
+            }
+            if (value === 2) {
+              this.volumeLevel = 0;
+              if (this.$refs.video) {
+                this.$refs.video.srcObject = null;
+              }
+              if (this.$refs.audio) {
+                this.$refs.audio.srcObject = null;
+              }
+            }
+          });
+          // 监听复选框变化，自动更新视频和音频显示
+          this.$watch('cameraEnabled', (value) => {
+            this.updateVideoStream();
+          });
+          this.$watch('micEnabled', (value) => {
+            this.updateAudioState();
+          });
+
+          // 获取候选人信息
+          const candidate_id = localStorage.getItem("candidate_id");
+          if (!candidate_id) {
+            window.location.href = 'login.html';
+            return;
+          }
+
+          fetch('http://127.0.0.1:8000/candidate/profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              candidate_id: candidate_id  // 替换为实际的 candidate_id
+            })
+          }).then(response => response.json()).then(data => {
+            if (data.detail) {
+              // 如果返回的消息中包含 detail，表示未授权或其他错误
+              console.error('Error1:', data.detail);
+              window.location.href = 'login.html';
+            } else {
+              // 处理成功响应的数据
+              console.log('Profile data:', data);
+              // 将数据存储到 Alpine.js 组件的状态中
+              if (data.phone === null || data.phone === '') {
+                this.phone_nil = true;
+              } else {
+                this.phone_nil = false;
+              }
+              if (data.email === null || data.email === '') {
+                this.email_nil = true;
+              } else {
+                this.email_nil = false;
+              }
+              this.profileData.birthdate = data.birth;
+              this.profileData.phone = data.phone;
+              this.profileData.email = data.email;
+              this.profileData.degree = data.degree;
+              this.profileData.name = data.parsed_name;
+              this.profileData.gender = data.gender;
+            }
+          }).catch(error => {
+            console.error('Error2:', error);
+            window.location.href = 'login.html';
+          });
+        },
+        toggleOptions() {
+          this.showOptions = !this.showOptions;
+        },
+        selectOption(option) {
+          this.profileData.degree = option;
+          this.showOptions = false;
+        },
+        validateEmail(email) {
+          const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          return re.test(email);
+        },
+        validatePhone(phone) {
+          const re = /^1[3-9]\d{9}$/;
+          return re.test(phone);
+        },
+        saveAndNextStep() {
+          // 重置错误信息
+          this.phoneError = false;
+          this.emailError = false;
+
+          // 校验手机号和邮箱格式
+          if (!this.validatePhone(this.profileData.phone)) {
+            this.phoneError = true;
+          }
+          if (!this.validateEmail(this.profileData.email)) {
+            this.emailError = true;
+          }
+
+          // 如果有错误，不保存数据
+          if (this.phoneError || this.emailError) {
+            return;
+          }
+          msgBody = {
+            'parsed_name': this.profileData.name,
+            'birth': this.profileData.birthdate,
+            'phone': this.profileData.phone,
+            'gender': this.profileData.gender,
+            'degree': this.profileData.degree,
+            'email': this.profileData.email,
+            'candidate_id': localStorage.getItem("candidate_id")
+          };
+          // 保存数据到数据库
+          fetch('http://127.0.0.1:8000/candidate/save_resume_basic_info', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(msgBody)
+          }).then(response => {
+            if (response.ok) {
+              this.currentStep = 2;
+              localStorage.setItem("candidate_name", this.profileData.name);
+            } else {
+              console.error('Error saving data');
+            }
+          }).catch(error => {
+            console.error('Error:', error);
+          });
+        },
+        testDevices() {
+          // 分别测试摄像头
+          navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+              this.videoStream = stream;
+              this.cameraTested = true;
+              this.tested_camera = true;
+              this.updateVideoStream();
+            })
+            .catch(e => {
+              alert('摄像头测试失败: ' + e.message);
+            });
+          // 分别测试语音
+          navigator.mediaDevices.getUserMedia({
+            audio: {
+              noiseSuppression: true,
+              echoCancellation: true,
+              autoGainControl: true
+            }
+          }).then((stream) => {
+            this.audioStream = stream;
+            this.micTested = true;
+            this.tested_mic = true;
+            if (this.$refs.audio) {
+              this.$refs.audio.srcObject = stream;
+            }
+            this.startVolumeMeter();
+            this.updateAudioState();
+          })
+            .catch(e => {
+              alert('语音测试失败: ' + e.message);
+            });
+        },
+        updateVideoStream() {
+          if (this.$refs.video) {
+            if (this.cameraEnabled && this.videoStream) {
+              this.$refs.video.srcObject = this.videoStream;
+            } else {
+              // 不显示视频时，清空视频流（页面背景通过 CSS 设置为黑色）
+              this.$refs.video.srcObject = null;
+            }
+          }
+        },
+        updateAudioState() {
+          if (this.$refs.audio) {
+            this.$refs.audio.muted = !this.micEnabled;
+          }
+        },
+        startVolumeMeter() {
+          if (!this.audioStream) return;
+          if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          const source = this.audioContext.createMediaStreamSource(this.audioStream);
+          this.analyser = this.audioContext.createAnalyser();
+          this.analyser.fftSize = 256;
+          source.connect(this.analyser);
+          const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+          const updateVolume = () => {
+            this.analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+              sum += dataArray[i];
+            }
+            let avg = sum / dataArray.length;
+            this.volumeLevel = Math.min(100, (avg / 255) * 100);
+            this.animationFrameId = requestAnimationFrame(updateVolume);
+          };
+          updateVolume();
+        },
+        stopDevices() {
+          if (this.videoStream) {
+            this.videoStream.getTracks().forEach(track => track.stop());
+            this.videoStream = null;
+            this.cameraTested = false;
+          }
+          if (this.audioStream) {
+            this.audioStream.getTracks().forEach(track => track.stop());
+            this.audioStream = null;
+            this.micTested = false;
+          }
+          if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+          }
+          if (this.$refs.video) {
+            this.$refs.video.srcObject = null;
+          }
+          if (this.$refs.audio) {
+            this.$refs.audio.srcObject = null;
+          }
+          this.volumeLevel = 0;
+        },
+
+        async goToStep(step) {
+          const candidate_id = localStorage.getItem("candidate_id");
+          this.stopDevices();
+          this.currentStep = step;
+          if (step == 3) {
+            const response = await fetch(`http://127.0.0.1:8000/candidate/position_info/${candidate_id}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              }
+            });
+            const data = await response.json();
+            if (data.code === 0) {
+              localStorage.setItem("job_title", data.job.job_title);
+              this.job_title = data.job.job_title;
+            }
+          }
+        },
+        startExam() {
+          window.location.href = 'interview.html';
+        }
+      }
+    }
+  </script>
+
+  <!-- 引入Alpine.js -->
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+
+</html>

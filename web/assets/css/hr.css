@@ -1,0 +1,94 @@
+/* HR模块专用样式 */
+.hr-login-container {
+    display: flex;
+    min-height: 100vh;
+  }
+  
+  .hr-login-container .login-left,
+  .hr-login-container .login-right {
+    flex: 1;
+  }
+  
+  .hr-login-container .login-left {
+    background: url('../images/promo.jpg') no-repeat center center;
+    background-size: cover;
+    position: relative;
+    color: #fff;
+  }
+  
+  .hr-login-container .promo {
+    position: absolute;
+    bottom: 20%;
+    left: 10%;
+    background-color: rgba(0,0,0,0.4);
+    padding: 20px;
+    border-radius: 8px;
+  }
+  
+  .hr-login-container .login-right {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8f9fa;
+  }
+  
+  .hr-form-container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+  }
+  
+  .hr-form-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .hr-form-container form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .hr-form-container label {
+    margin-top: 10px;
+  }
+  
+  .hr-form-container input,
+  .hr-form-container textarea,
+  .hr-form-container select {
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .hr-form-container button {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .hr-form-container button:hover {
+    background-color: #0056b3;
+  }
+  
+  .resume-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .resume-table th,
+  .resume-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+  
+  .resume-table th {
+    background-color: #f2f2f2;
+  }
+  

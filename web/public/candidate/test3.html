@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>本地录音应用</title>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-indicator {
+            padding: 0.8rem;
+            margin: 1rem 0;
+            border-left: 4px solid #4CAF50;
+            background: #f8f9fa;
+        }
+
+        .recording {
+            border-color: #f44336;
+            background: #fff3f2;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        button {
+            flex: 1;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .start-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .stop-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .download-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            background: #e0e0e0;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        audio {
+            margin-top: 1.5rem;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div x-data="recorderApp()" class="container">
+        <h1>本地录音机</h1>
+        <div class="status-indicator" :class="{ 'recording': isRecording }">
+            🎙️ <span x-text="statusText"></span>
+        </div>
+
+        <div class="button-group">
+            <button 
+                class="start-btn"
+                @click="startRecording" 
+                :disabled="isRecording"
+                x-show="!isRecording">
+                开始录音
+            </button>
+            
+            <button 
+                class="stop-btn"
+                @click="stopRecording" 
+                :disabled="!isRecording"
+                x-show="isRecording">
+                停止录音
+            </button>
+        </div>
+
+        <div x-show="audioUrl">
+            <audio :src="audioUrl" controls></audio>
+            <button 
+                class="download-btn"
+                @click="downloadAudio"
+                style="margin-top: 1rem;">
+                下载录音文件
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function recorderApp() {
+            return {
+                isRecording: false,
+                audioUrl: null,
+                mediaRecorder: null,
+                audioChunks: [],
+                audioContext: null,
+
+                get statusText() {
+                    return this.isRecording ? '正在录音...' : '准备录音';
+                },
+
+                async startRecording() {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({
+                            audio: {
+                                noiseSuppression: true,
+                                echoCancellation: true,
+                                autoGainControl: true
+                            }
+                        });	
+
+                        // 创建音频上下文
+                        this.audioContext = new AudioContext();
+                        const source = this.audioContext.createMediaStreamSource(stream);
+
+                        // 初始化录音器
+                        this.mediaRecorder = new MediaRecorder(stream);
+                        this.audioChunks = [];
+
+                        this.mediaRecorder.ondataavailable = e => {
+                            this.audioChunks.push(e.data);
+                        };
+
+                        this.mediaRecorder.onstop = () => {
+                            const blob = new Blob(this.audioChunks, { 
+                                type: this.mediaRecorder.mimeType 
+                            });
+                            this.audioUrl = URL.createObjectURL(blob);
+                            
+                            // 释放音频资源
+                            stream.getTracks().forEach(track => track.stop());
+                            if (this.audioContext) {
+                                this.audioContext.close();
+                            }
+                        };
+
+                        this.mediaRecorder.start();
+                        this.isRecording = true;
+                    } catch (error) {
+                        alert(`麦克风访问失败: ${error.message}`);
+                    }
+                },
+
+                stopRecording() {
+                    if (this.mediaRecorder) {
+                        this.mediaRecorder.stop();
+                        this.isRecording = false;
+                    }
+                },
+
+                downloadAudio() {
+                    if (!this.audioUrl) return;
+                    
+                    const filename = `录音_${new Date()
+                        .toLocaleString()
+                        .replace(/[/:\\]/g, '-')}.webm`;
+
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = this.audioUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(this.audioUrl);
+                    document.body.removeChild(a);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

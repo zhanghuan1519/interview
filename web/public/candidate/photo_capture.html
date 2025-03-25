@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>拍照存档 - AI面试平台</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <link rel="stylesheet" href="../../assets/css/candidate.css">
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const captureBtn = document.getElementById("captureBtn");
+      const video = document.getElementById("video");
+      const canvas = document.getElementById("canvas");
+      const confirmBtn = document.getElementById("confirmBtn");
+
+      // 打开摄像头
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          video.srcObject = stream;
+          video.play();
+        })
+        .catch(err => {
+          console.error("摄像头错误：", err);
+        });
+
+      captureBtn.addEventListener("click", function() {
+        const context = canvas.getContext("2d");
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      });
+
+      confirmBtn.addEventListener("click", function() {
+        // 将canvas数据上传到后端保存，示例中直接跳转
+        alert("拍照存档成功！");
+        window.location.href = "device_check.html";
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="candidate-form-container">
+    <h2>拍照存档</h2>
+    <video id="video" width="400" height="300" autoplay></video>
+    <canvas id="canvas" width="400" height="300" style="display: none;"></canvas>
+    <div class="photo-buttons">
+      <button id="captureBtn">拍照</button>
+      <button id="confirmBtn">确认照片</button>
+    </div>
+  </div>
+</body>
+</html>

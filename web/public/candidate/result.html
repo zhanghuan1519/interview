@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>面试结果 - AI面试平台</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <link rel="stylesheet" href="../../assets/css/candidate.css">
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // 模拟面试结果数据，可通过接口获取实际数据
+      const resultData = {
+        overall_score: 85,
+        score_language: "A",
+        score_logic: "B+",
+        score_skill: "A-",
+        analysis: "总体表现良好，建议进一步提升逻辑思维。"
+      };
+
+      document.getElementById("overallScore").innerText = resultData.overall_score;
+      document.getElementById("languageScore").innerText = resultData.score_language;
+      document.getElementById("logicScore").innerText = resultData.score_logic;
+      document.getElementById("skillScore").innerText = resultData.score_skill;
+      document.getElementById("analysis").innerText = resultData.analysis;
+    });
+  </script>
+</head>
+<body>
+  <div class="candidate-form-container">
+    <h2>面试结果</h2>
+    <div class="result-panel">
+      <p>综合得分：<span id="overallScore"></span></p>
+      <p>语言表达：<span id="languageScore"></span></p>
+      <p>逻辑思维：<span id="logicScore"></span></p>
+      <p>技能匹配：<span id="skillScore"></span></p>
+      <p>详细分析：<span id="analysis"></span></p>
+    </div>
+    <div class="result-buttons">
+      <button onclick="window.location.href='interview.html'">重新面试</button>
+      <button onclick="window.location.href='profile_confirm.html'">返回个人中心</button>
+    </div>
+  </div>
+</body>
+</html>

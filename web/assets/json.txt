@@ -1,0 +1,89 @@
+{
+  "basic_info": {
+    "name": "姓名",
+	"gender": "性别",
+	"birth": "出生年月日",
+	"age": "年龄",
+	"hometown": "籍贯",
+	"home_city": "家庭所在城市",
+	"work_city": "当前工作省市",
+	"city_expect": "意向工作省市",
+	"current_salary": "当前薪资水平",
+	"expect_salary": "期望薪资水平",
+	"married": "已婚true,未婚或离异false",
+    "contact": {
+      "phone": "手机号",
+      "email": "邮箱",
+      "linkedin": "LinkedIn链接（可选）",
+      "address": "地址（可选）"
+    },
+    "summary": "个人总结或求职目标（可选）"
+  },
+  "education": [
+    {
+      "time": "时间段（如 2010/09-2014/06）",
+      "school": "学校名称",
+      "major": "专业",
+      "degree": "学位",
+      "honors": "荣誉或奖项（可选）"
+    }
+  ],
+  "work_experience": [
+    {
+      "company": "公司名称",
+      "position": "职位",
+      "time": "时间段（如 2020/03-2023/12）",
+      "responsibilities": ["职责1", "职责2"],
+      "achievements": ["业绩1", "业绩2"],
+      "projects": [
+        {
+          "name": "项目名称（可选）",
+		  "time": "时间段（可选）",
+		  "role": "担任角色",
+		  "description": "项目描述",
+		  "impact": "成果或影响（可选）",
+		  "project_tools": "项目所使用工具、编程语言等"
+        }
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "项目名称",
+      "time": "时间段（可选）",
+      "role": "担任角色",
+      "description": "项目描述",
+      "impact": "成果或影响（可选）",
+	  "project_tools": "项目所使用工具、编程语言等"
+    }
+  ],
+  "skills": [
+    {
+      "category": "技能类别（如 技术、管理）",
+      "items": [
+		{
+		  "skill":"技能1",
+		  "level":"熟练程度"
+		}
+	  ]	
+    }
+  ],
+  "certifications": [
+    {
+      "name": "证书名称",
+      "issuer": "颁发机构",
+      "time": "获得时间（如 2022/05）"
+    }
+  ],
+  "languages": [
+    {
+      "language": "语言名称",
+      "proficiency": "熟练程度（如 熟练、流利）"
+    }
+  ],
+  "additional_info": {
+    "publications": "出版物（可选）",
+    "awards": "其他奖项（可选）",
+    "interests": "个人兴趣（可选）"
+  }
+}

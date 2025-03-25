@@ -1,0 +1,13 @@
+{
+    "name": "ai-interview-frontend",
+    "version": "1.0.0",
+    "description": "前端项目依赖管理",
+    "scripts": {
+      "start": "live-server public"
+    },
+    "dependencies": {},
+    "devDependencies": {
+      "live-server": "^1.2.1"
+    }
+  }
+  

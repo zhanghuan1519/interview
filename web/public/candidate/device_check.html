@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>设备检测 - AI面试平台</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <link rel="stylesheet" href="../../assets/css/candidate.css">
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // 模拟设备检测结果
+      const deviceStatus = {
+        camera: true,
+        microphone: true,
+        network: true
+      };
+      document.getElementById("cameraStatus").innerText = deviceStatus.camera ? "正常" : "异常";
+      document.getElementById("microphoneStatus").innerText = deviceStatus.microphone ? "正常" : "异常";
+      document.getElementById("networkStatus").innerText = deviceStatus.network ? "正常" : "异常";
+
+      document.getElementById("recheckBtn").addEventListener("click", function() {
+        window.location.reload();
+      });
+
+      document.getElementById("proceedBtn").addEventListener("click", function() {
+        window.location.href = "interview.html";
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="candidate-form-container">
+    <h2>设备检测</h2>
+    <ul class="device-list">
+      <li>摄像头：<span id="cameraStatus"></span></li>
+      <li>麦克风：<span id="microphoneStatus"></span></li>
+      <li>网络：<span id="networkStatus"></span></li>
+    </ul>
+    <div class="device-buttons">
+      <button id="recheckBtn">重新检测</button>
+      <button id="proceedBtn">继续面试</button>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>设置面试规则 - AI面试平台</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <link rel="stylesheet" href="../../assets/css/hr.css">
+  <script src="../../assets/js/api.js" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const configForm = document.getElementById("configForm");
+      configForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const job_posting_id = document.getElementById("job_posting_id").value;
+        const question_mode = document.getElementById("question_mode").value;
+        const tech_percentage = parseFloat(document.getElementById("tech_percentage").value);
+        const behavioral_percentage = parseFloat(document.getElementById("behavioral_percentage").value);
+        const question_count = parseInt(document.getElementById("question_count").value);
+        const answer_duration = parseInt(document.getElementById("answer_duration").value);
+        const enable_follow_up = document.getElementById("enable_follow_up").checked ? 1 : 0;
+        const data = {
+          job_posting_id,
+          question_mode,
+          tech_percentage,
+          behavioral_percentage,
+          question_count,
+          answer_duration,
+          enable_follow_up
+        };
+        try {
+          const res = await fetch("http://localhost:8000/hr/interview/config", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
+          });
+          const result = await res.json();
+          if(result.message === "面试规则设置成功") {
+            alert("规则设置成功");
+          } else {
+            alert("设置失败");
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="hr-form-container">
+    <h2>设置面试规则</h2>
+    <form id="configForm">
+      <label for="job_posting_id">岗位ID</label>
+      <input type="text" id="job_posting_id" name="job_posting_id" placeholder="请输入岗位ID" required>
+      <label for="question_mode">问题模式</label>
+      <select id="question_mode" name="question_mode">
+        <option value="AI">AI自动生成</option>
+        <option value="manual">手动输入</option>
+        <option value="mix">混合模式</option>
+      </select>
+      <label for="tech_percentage">技术问题比例 (%)</label>
+      <input type="number" id="tech_percentage" name="tech_percentage" value="80" required>
+      <label for="behavioral_percentage">行为问题比例 (%)</label>
+      <input type="number" id="behavioral_percentage" name="behavioral_percentage" value="20" required>
+      <label for="question_count">题目数量</label>
+      <input type="number" id="question_count" name="question_count" value="10" required>
+      <label for="answer_duration">答题时长 (秒)</label>
+      <input type="number" id="answer_duration" name="answer_duration" value="300" required>
+      <label>
+        <input type="checkbox" id="enable_follow_up" name="enable_follow_up"> 启用追问逻辑
+      </label>
+      <button type="submit">保存规则</button>
+    </form>
+  </div>
+</body>
+</html>

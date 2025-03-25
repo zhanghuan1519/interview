@@ -1,0 +1,122 @@
+/* 通用重置，可自行选择是否需要 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #333;
+    background-color: #f5f7fa;
+    /* 如果想让右侧也有一部分渐变背景，可自行调节 */
+  }
+  
+  .container {
+    display: flex;
+    min-height: 100vh; /* 保证高度占满全屏 */
+  }
+  
+  /* 左侧面板 */
+  .left-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px;
+    color: #fff;
+    background: linear-gradient(135deg, #0052A4 0%, #00A6E6 100%);
+    /* 可替换为自己喜欢的科技感背景或添加背景图 */
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+  
+  /* 品牌名称 */
+  .branding {
+    margin-bottom: 40px;
+  }
+  .site-name {
+    font-size: 40px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .site-subtitle {
+    font-size: 18px;
+    letter-spacing: 2px;
+  }
+  
+  /* 宣传文案 */
+  .slogan h2 {
+    font-size: 28px;
+    margin-bottom: 15px;
+  }
+  .slogan p {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  
+  /* 右侧面板 */
+  .right-panel {
+    width: 400px; /* 可自行调整合适宽度 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+  }
+  
+  /* 登录框样式 */
+  .login-box {
+    width: 80%;
+    max-width: 360px;
+    background-color: #fff;
+    padding: 40px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  
+  /* 登录标题 */
+  .login-header h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  
+  /* 输入框组 */
+  .input-group {
+    margin-bottom: 20px;
+  }
+  .input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .input-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #dcdcdc;
+    border-radius: 4px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-group input:focus {
+    border-color: #007bff;
+  }
+  
+  /* 登录按钮 */
+  .login-button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    background: #0052A4;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .login-button:hover {
+    background: #003E80;
+  }
+  
