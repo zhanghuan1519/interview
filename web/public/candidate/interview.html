@@ -426,6 +426,49 @@
                 record_start_time: 0, //毫秒数
                 record_end_time: 0,
 
+                interview_config: null,
+
+                async getInterviewConfig() {
+                    try {
+                        const candidate_id = localStorage.getItem("candidate_id");
+                        const response = await fetch(`http://127.0.0.1:8000/candidate/interview_config/${candidate_id}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        });
+
+                        const data = await response.json();
+                        if (response.ok) {
+                            console.log("获取面试配置成功:", data);
+                            // 处理配置数据
+                            if (data.code === 0) {
+                                this.interview_config = data.config;
+                            } else {
+                                Swal.fire({
+                                    title: '错误',
+                                    text: "出现系统错误，请重试或联系HR",
+                                    icon: 'none',
+                                    showCancelButton: false,
+                                    confirmButtonColor: '#3085d6',
+                                    cancelButtonColor: '#d33',
+                                    confirmButtonText: '确定'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        // 用户点击了“确定”
+                                        location.href = "login.html";
+                                    }
+                                });
+                            }
+                        } else {
+                            console.error("获取面试配置失败:", data.message);
+                            this.allow_start = false;
+                        }
+                    } catch (error) {
+                        console.error("获取面试配置时发生错误:", error);
+                        this.allow_start = false;
+                    }
+                },
 
                 get progress() {
                     return ((this.questionIndex) / this.questionCount) * 100;
@@ -518,7 +561,7 @@
                     }
                 },
 
-                init() {
+                async init() {
                     // 获取候选人信息
                     const candidate_id = localStorage.getItem("candidate_id");
                     if (!candidate_id) {
@@ -526,31 +569,31 @@
                         return;
                     }
                     this.candidate_name = localStorage.getItem("candidate_name");
+                    try {
+                        const loginResponse = await fetch('http://127.0.0.1:8000/candidate/is_login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                candidate_id: candidate_id  // 替换为实际的 candidate_id
+                            })
+                        });
 
-                    fetch('http://127.0.0.1:8000/candidate/is_login', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            candidate_id: candidate_id  // 替换为实际的 candidate_id
-                        })
-                    }).then(response => response.json()).then(data => {
-                        if (data.code === 0) {
-                            // 如果返回的消息中包含 detail，表示未授权或其他错误
+                        const loginData = await loginResponse.json();
+                        if (loginData.code === 0) {
                             console.log("已经登录");
-                            //应该先检查状态，之前是不是已经进来过
+
+                            this.getInterviewConfig();
                             this.fetchInterviewQuestions();
                         } else {
-                            // 处理成功响应的数据
                             console.log("未登录");
                             window.location.href = 'login.html';
                         }
-                    }).catch(error => {
-                        console.error('Error2:', error);
+                    } catch (error) {
+                        console.error('Error:', error);
                         window.location.href = 'login.html';
-                    });
-
+                    }
 
                     document.addEventListener('visibilitychange', () => {
                         if (document.hidden) {
@@ -880,7 +923,7 @@
                     clearInterval(this.countdownTimer);
 
                     // 如果用户未点击开始作答，自动激活"我的回答完毕"按钮，禁用"开始作答"
-                    this.countdown = 40;
+                    this.countdown = this.interview_config.answer_duration;
                     this.isAnswering = true;
                     this.isFinished = false;
                     this.isRecording = true;
@@ -892,7 +935,7 @@
                     //启动录音
                     this.startRecordingAudio();
                     //启动录制视频
-                    this.startVideoRecording();                    
+                    this.startVideoRecording();
 
                     // 启动40秒作答倒计时
                     this.answeringTimer = setInterval(() => {
@@ -907,7 +950,7 @@
                 startAnswer() {
                     // 用户点击了"开始作答"按钮，复位40秒倒计时
                     clearInterval(this.countdownTimer);
-                    this.countdown = 40;
+                    this.countdown = this.interview_config.answer_duration;
                     this.isAnswering = true;
                     this.isFinished = false;
                     this.isRecording = true;
@@ -938,7 +981,7 @@
                     // 结束回答，禁用"我的回答完毕"按钮
                     this.isFinished = true;
                     this.isAnswering = false;
-                    this.isRecording = false;                   
+                    this.isRecording = false;
 
                     // 显示“下一题”按钮
                     this.showNextButton = true;

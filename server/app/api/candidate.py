@@ -274,4 +274,26 @@ async def answer_start(question_id: int, create_time: int, db: Session=Depends(g
         db.rollback()
         return {"code": -1, "message": f"增加问题回答错误:{e}"}
     return {"code": 0, "message": "ok"}
-    
+
+
+@router.get("/interview_config/{candidate_id}")
+async def get_interview_config(candidate_id: int, db: Session=Depends(get_db)):
+    interview = db.query(models.InterviewSession).filter(models.InterviewSession.candidate_id==candidate_id,
+                                                         models.InterviewSession.status=='scheduled')\
+                                                             .order_by(models.InterviewSession.scheduled_time.desc()).first()
+    if not interview:
+        return {"message": "interview not found", "code": -1}
+    config = db.query(models.InterviewConfig).filter(models.InterviewConfig.id==interview.interview_config_id).first()
+    if not config:
+        return {"message": "config not found", "code": -2}
+    config_json = {
+        "id": config.id,
+        "job_posting_id": config.job_posting_id,
+        "question_mode": config.question_mode,
+        "tech_percentage": config.tech_percentage,
+        "behavioral_percentage": config.behavioral_percentage,
+        "question_count": config.question_count,
+        "answer_duration": config.answer_duration,
+        "enable_follow_up": config.enable_follow_up
+    }
+    return {"message": "ok", "code": 0, "config": config_json}
