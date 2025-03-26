@@ -99,7 +99,7 @@ class InterviewSession(Base):
 class InterviewSessionQuestion(Base):
     __tablename__ = "interview_session_questions"
     id = Column(Integer, primary_key=True, index=True)
-    interview_session_id = Column(Integer, ForeignKey("interview_sessions.id", ondelete="CASCADE"), comment="关联的面试会话ID")
+    interview_session_id = Column(Integer, comment="关联的面试会话ID")
     question_text = Column(Text, nullable=False, comment="题目文本")
     question_type = Column(Enum("technical", "behavioral", "other", name="question_type_enum"), default="technical", comment="题目类型")
     is_auto_generated = Column(SmallInteger, default=1, comment="是否由AI自动生成")
@@ -111,7 +111,7 @@ class InterviewSessionQuestion(Base):
 class InterviewAnswer(Base):
     __tablename__ = "interview_answers"
     id = Column(Integer, primary_key=True, index=True)
-    session_question_id = Column(Integer, ForeignKey("interview_session_questions.id", ondelete="CASCADE"), comment="关联的面试题目ID")
+    session_question_id = Column(Integer, comment="关联的面试题目ID")
     answer_text = Column(Text, comment="候选人文字回答内容")
     answer_video_path = Column(Text, comment="候选人回答视频文件存储路径")
     answer_audio_path = Column(Text, comment="候选人回答音频文件存储路径")

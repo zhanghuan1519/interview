@@ -83,6 +83,7 @@ def create_question(interview : InterviewQuestionCreate, db: Session = Depends(g
         raise HTTPException(status_code=404, detail="面试规则不存在")
     # 第四步: 通过deepseek创建面试问题
     # 首先构建deepseek请求
+    questions_json = {"questions": []}
     try:
         result = deepseek_service.call_deepseek(
             question_count=config.question_count,
@@ -104,15 +105,27 @@ def create_question(interview : InterviewQuestionCreate, db: Session = Depends(g
                     answer_time_limit=40,
                     is_auto_generated=1
                 )
-                order = order + 1
                 db.add(new_question)
+                order = order + 1
             db.commit()
             
-            result = db.query(models.)
+            rows = db.query(models.InterviewSessionQuestion)\
+                .filter(models.InterviewSessionQuestion.interview_session_id==sessions.id)\
+                .order_by(models.InterviewSessionQuestion.order_number.asc()).all()
+            questions_json = {
+                "questions": [
+                    {
+                        "id": row.id,
+                        "type": row.question_type,
+                        "content": row.question_text
+                    }
+                    for row in rows
+                ]
+            }
         except Exception as ex:
             db.rollback()
             raise HTTPException(status_code=500, detail="保存面试问题到数据库时发生错误")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Deepseek服务异常：{e}")    
     
-    return {"code": 0, "message": "面试问题创建成功", "questions": result["questions"]}
+    return {"code": 0, "message": "面试问题创建成功", "questions": questions_json["questions"]}

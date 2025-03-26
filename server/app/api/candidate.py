@@ -259,5 +259,19 @@ async def upload_video(candidate_id: str, question_id: int, file: UploadFile = F
         return {"message": "success", "file_path": file_path, "code": 0}
     except Exception as e:
         return {"message": str(e), "code": -1}
-
-
+    
+    
+@router.post("/answer_start/{question_id}/{create_time}")
+async def answer_start(question_id: int, create_time: int, db: Session=Depends(get_db)):
+    try:
+        row = models.InterviewAnswer(
+            session_question_id=question_id,
+            created_at=format_utc_millsecond(create_time)
+        )
+        db.add(row)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        return {"code": -1, "message": f"增加问题回答错误:{e}"}
+    return {"code": 0, "message": "ok"}
+    

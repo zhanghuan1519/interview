@@ -341,11 +341,10 @@
                     <div class="dialog-item" :class="{ 'user': item.type === '用户回答' }">
                         <div x-show="item.type !== '用户回答'" x-text="item.content"></div>
                         <video x-show="item.type === '用户回答'" controls :controls="false">
-                            <source :src="item.content" type="video/mp4">
+                            <source :src="item.content" type="video/webm">
                         </video>
                         <div class="video-info" x-show="item.type === '用户回答'">
                             <span x-text="'回答时间: ' + item.time"></span>
-                            <span x-text="'时长: ' + item.duration"></span>
                         </div>
                     </div>
                 </template>
@@ -494,7 +493,9 @@
                     formData.append('file', blob, filename);
 
                     try {
-                        const response = await fetch(`http://127.0.0.1:8000/candidate/upload_audio/${candidate_id}/${this.questions[this.questionIndex].id}/${this.record_start_time}/${this.record_end_time}`, {
+                        console.log(`question-index=${this.questionIndex - 1}`);
+                        console.log(`id:${this.questions[this.questionIndex - 1].id}`);
+                        const response = await fetch(`http://127.0.0.1:8000/candidate/upload_audio/${candidate_id}/${this.questions[this.questionIndex - 1].id}/${this.record_start_time}/${this.record_end_time}`, {
                             method: 'POST',
                             body: formData
                         });
@@ -799,7 +800,7 @@
                     formData.append('file', blob, filename);
 
                     try {
-                        const response = await fetch(`http://127.0.0.1:8000/candidate/upload_video/${candidate_id}/${this.questions[this.questionIndex].id}`, {
+                        const response = await fetch(`http://127.0.0.1:8000/candidate/upload_video/${candidate_id}/${this.questions[this.questionIndex - 1].id}`, {
                             method: 'POST',
                             body: formData,
                         });
@@ -807,6 +808,9 @@
                         const data = await response.json();
                         if (response.ok) {
                             console.log('视频上传成功:', data.message);
+                            const video_url = `http://localhost:8080/${data.file_path}`;
+                            // 添加视频至左侧
+                            this.addVideo(video_url.replace(/\\/g, "/"));
                         } else {
                             console.error('视频上传失败:', data.message);
                         }
@@ -836,6 +840,41 @@
                     }, 1000);
                 },
 
+                insertAnswerStartToDB() {
+                    //问题ID
+                    const id = this.questions[this.questionIndex - 1].id;
+                    console.log(`current id=${id}`);
+                    const now = new Date();
+                    const create_time = now.getTime();
+
+                    fetch(`http://127.0.0.1:8000/candidate/answer_start/${id}/${create_time}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    }).then(response => response.json()).then(data => {
+                        if (data.code == 0) {
+                            console.log("ok");
+                        } else {
+                            console.log(data.message);
+                            Swal.fire({
+                                title: '错误',
+                                text: "数据库出现系统错误，请联系HR或系统管理员",
+                                icon: 'none',
+                                showCancelButton: false,
+                                confirmButtonColor: '#3085d6',
+                                cancelButtonColor: '#d33',
+                                confirmButtonText: '确定'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    // 用户点击了“确定”
+                                    location.href = "login.html";
+                                }
+                            });
+                        }
+                    });
+                },
+
                 handleStartAnswering() {
                     // 停止15秒倒计时
                     clearInterval(this.countdownTimer);
@@ -849,10 +888,11 @@
                     //记录开始时间
                     const now = new Date();
                     this.record_start_time = now.getTime();
+                    this.insertAnswerStartToDB();
                     //启动录音
                     this.startRecordingAudio();
                     //启动录制视频
-                    this.startVideoRecording();
+                    this.startVideoRecording();                    
 
                     // 启动40秒作答倒计时
                     this.answeringTimer = setInterval(() => {
@@ -875,6 +915,7 @@
                     //记录开始时间
                     const now = new Date();
                     this.record_start_time = now.getTime();
+                    this.insertAnswerStartToDB();
                     //启动录音
                     this.startRecordingAudio();
                     //启动录制视频
@@ -897,10 +938,7 @@
                     // 结束回答，禁用"我的回答完毕"按钮
                     this.isFinished = true;
                     this.isAnswering = false;
-                    this.isRecording = false;
-
-                    // 添加视频至左侧
-                    this.addVideo();
+                    this.isRecording = false;                   
 
                     // 显示“下一题”按钮
                     this.showNextButton = true;
@@ -911,7 +949,7 @@
                     //停止录音
                     this.stopRecordingAudio();
                     //停止录制视频
-                    this.stopVideoRecording();                    
+                    this.stopVideoRecording();
                 },
 
                 finishAnswer() {
@@ -919,13 +957,12 @@
                     this.handleFinishAnswering();
                 },
 
-                addVideo() {
+                addVideo(url) {
                     // 假设这是一个模拟添加视频的操作
                     this.dialogHistory.push({
                         type: "用户回答",
-                        content: "https://www.w3schools.com/html/mov_bbb.mp4",
-                        time: new Date().toLocaleTimeString(),
-                        duration: "4:52" // 假设视频时长为4:52
+                        content: url,
+                        time: new Date().toLocaleTimeString()
                     });
                 },
 
